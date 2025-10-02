@@ -9,6 +9,8 @@ def sanitize_for_log(s):
     except Exception:
         return str(s)
 from datetime import datetime
+import td_test_manager
+
 try:
     ts_local = datetime.now().isoformat()
 except Exception:
@@ -30,7 +32,9 @@ def load_signals_safe(path='signals_tmp.json'):
 
 import csv, time, sys, argparse, subprocess, shlex, os, tempfile, random, string
 import os
-from datetime import datetime
+from datetime import datetime
+import td_test_manager
+
 
 def load_config(path):
     rows=[]
@@ -276,6 +280,7 @@ if signals:
             w.writerow(monitor_line)
     skip_backtester = True
 # END AUTOPATCH
+
 
 
 
