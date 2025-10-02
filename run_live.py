@@ -1,4 +1,4 @@
-﻿
+
 # AUTOPATCH SAFE DEFS
 def sanitize_for_log(s):
     try:
@@ -280,6 +280,7 @@ if signals:
             w.writerow(monitor_line)
     skip_backtester = True
 # END AUTOPATCH
+
 
 
 

@@ -19,7 +19,7 @@
     "loop_interval":  60,
     "signal_mode":  "RSI_MACD",
     "td_test":  {
-                    "enabled":  false,
+                    "enabled":  true,
                     "max_position_pct":  0.01,
                     "mode":  "paper"
                 }
