@@ -1,6 +1,40 @@
-﻿import csv, time, sys, argparse, subprocess, shlex, os, tempfile, random, string
+
+# AUTOPATCH SAFE DEFS
+def sanitize_for_log(s):
+    try:
+        if s is None:
+            return ''
+        # remove literal escape sequences coming from serialized JSON/logs
+        return str(s).replace('\\r','').replace('\\n','').replace('`n','').replace('\\\\`n','')
+    except Exception:
+        return str(s)
+from datetime import datetime
+import td_test_manager
+
+try:
+    ts_local = datetime.now().isoformat()
+except Exception:
+    ts_local = ''
+try:
+    mode_local = getattr(globals().get('args'), 'mode', '') if 'args' in globals() else ''
+except Exception:
+    mode_local = ''
+
+# safe JSON loader
+def load_signals_safe(path='signals_tmp.json'):
+    try:
+        p = Path(path)
+        if not p.exists(): return []
+        txt = p.read_text(encoding='utf-8-sig')
+        return json.loads(txt) if txt and txt.strip() else []
+    except Exception:
+        return []
+
+import csv, time, sys, argparse, subprocess, shlex, os, tempfile, random, string
 import os
-from datetime import datetime
+from datetime import datetime
+import td_test_manager
+
 
 def load_config(path):
     rows=[]
@@ -198,5 +232,59 @@ try:
 except Exception:
     pass
 # END AUTOPATCH
+
+
+# BEGIN AUTOPATCH: prefer signals_tmp over backtester
+try:
+    ts_local = datetime.now().isoformat()
+except Exception:
+    ts_local = ''
+try:
+    mode_local = getattr(globals().get('args'), 'mode', '') if 'args' in globals() else ''
+except Exception:
+    mode_local = ''
+
+try:
+    sig_path = Path("signals_tmp.json")
+    if sig_path.exists():
+        s_txt = sig_path.read_text(encoding="utf-8-sig")
+        signals = json.loads(s_txt) if s_txt.strip() else []
+    else:
+        signals = []
+except Exception:
+    signals = []
+
+skip_backtester = False
+if signals:
+    first = signals[0] if isinstance(signals, list) and signals else None
+    if first:
+        monitor_line = {
+            "timestamp": ts_local,
+            "symbol": first.get("symbol","" ),
+            "strategy": first.get("strategy","" ),
+            "mode": mode_local,
+            "open_positions": 0,
+            "unrealized_pnl": first.get("total_pnl","0"),
+            "realized_pnl": first.get("total_pnl","0"),
+            "account_balance": 1000,
+            "equity": 1000 + float(first.get("total_pnl","0") or 0),
+            "max_drawdown": first.get("max_drawdown","0"),
+            "trades_today": first.get("trades","0"),
+            "avg_slippage": 0.0,
+            "last_error": ""
+        }
+        header = not os.path.exists("daily_monitor.csv")
+        with open("daily_monitor.csv","a",newline="",encoding="utf8") as mf:
+            w=csv.DictWriter(mf, fieldnames=list(monitor_line.keys()))
+            if header: w.writeheader()
+            w.writerow(monitor_line)
+    skip_backtester = True
+# END AUTOPATCH
+
+
+
+
+
+
 
 
